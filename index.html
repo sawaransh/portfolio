@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sawaransh — Motion Designer</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;600;700;800&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  :root {
+    --black: #080808;
+    --off-white: #f0ece3;
+    --acid: #c8ff00;
+    --orange: #ff5e00;
+    --dim: #1a1a1a;
+    --muted: #555;
+    --border: rgba(255,255,255,0.08);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--black);
+    color: var(--off-white);
+    font-family: 'Syne', sans-serif;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* CUSTOM CURSOR */
+  .cursor {
+    position: fixed; width: 12px; height: 12px;
+    background: var(--acid); border-radius: 50%;
+    pointer-events: none; z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: transform 0.1s, width 0.2s, height 0.2s, background 0.2s;
+    mix-blend-mode: difference;
+  }
+  .cursor-ring {
+    position: fixed; width: 36px; height: 36px;
+    border: 1px solid var(--acid); border-radius: 50%;
+    pointer-events: none; z-index: 9998;
+    transform: translate(-50%, -50%);
+    transition: all 0.15s ease-out;
+    opacity: 0.6;
+  }
+  body:hover .cursor { opacity: 1; }
+
+  /* NOISE OVERLAY */
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 9990; opacity: 0.35;
+  }
+
+  /* ─── NAV ─── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0;
+    z-index: 100; padding: 20px 48px;
+    display: flex; justify-content: space-between; align-items: center;
+    backdrop-filter: blur(12px);
+    background: rgba(8,8,8,0.7);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.8rem; letter-spacing: 0.08em;
+    color: var(--acid);
+    text-decoration: none;
+  }
+  .nav-links { display: flex; gap: 36px; align-items: center; }
+  .nav-links a {
+    text-decoration: none; color: var(--off-white);
+    font-size: 0.78rem; font-weight: 600; letter-spacing: 0.12em;
+    text-transform: uppercase; position: relative;
+    transition: color 0.2s; line-height: 1;
+  }
+  .nav-links a::after {
+    content: ''; position: absolute; bottom: -4px; left: 0;
+    width: 0; height: 1px; background: var(--acid);
+    transition: width 0.3s;
+  }
+  .nav-links a:hover { color: var(--acid); }
+  .nav-links a:hover::after { width: 100%; }
+  .nav-cta {
+    padding: 8px 22px; border: 1px solid var(--acid);
+    color: var(--acid) !important; font-size: 0.78rem !important;
+    letter-spacing: 0.12em; transition: background 0.3s, color 0.3s !important;
+  }
+  .nav-cta:hover { background: var(--acid); color: var(--black) !important; }
+  .nav-cta::after { display: none !important; }
+
+  /* ─── HERO ─── */
+  #hero {
+    min-height: 100vh; display: flex; flex-direction: column;
+    justify-content: center; padding: 120px 48px 80px;
+    position: relative; overflow: hidden;
+  }
+  .hero-bg-grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(200,255,0,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(200,255,0,0.03) 1px, transparent 1px);
+    background-size: 64px 64px;
+    animation: gridPan 20s linear infinite;
+  }
+  @keyframes gridPan { to { background-position: 64px 64px; } }
+
+  .hero-glow {
+    position: absolute; width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(200,255,0,0.08) 0%, transparent 70%);
+    top: -100px; right: -100px; pointer-events: none;
+    animation: glowPulse 4s ease-in-out infinite;
+  }
+  @keyframes glowPulse { 0%,100% { opacity: 0.6; transform: scale(1); } 50% { opacity: 1; transform: scale(1.1); } }
+
+  .hero-eyebrow {
+    font-family: 'Space Mono', monospace; font-size: 0.72rem;
+    color: var(--acid); letter-spacing: 0.25em; text-transform: uppercase;
+    margin-bottom: 20px;
+    opacity: 0; animation: fadeUp 0.8s 0.2s forwards;
+  }
+  .hero-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(4rem, 12vw, 11rem);
+    line-height: 0.9; letter-spacing: 0.01em;
+    color: var(--off-white);
+    opacity: 0; animation: fadeUp 0.8s 0.4s forwards;
+  }
+  .hero-name span { color: var(--acid); display: inline-block; }
+  .hero-title {
+    font-size: clamp(1rem, 2.5vw, 1.5rem); font-weight: 400;
+    color: var(--muted); margin-top: 16px; max-width: 560px;
+    line-height: 1.6;
+    opacity: 0; animation: fadeUp 0.8s 0.6s forwards;
+  }
+  .hero-title strong { color: var(--off-white); font-weight: 700; }
+  .hero-badges {
+    display: flex; gap: 12px; margin-top: 28px; flex-wrap: wrap;
+    opacity: 0; animation: fadeUp 0.8s 0.8s forwards;
+  }
+  .badge {
+    padding: 6px 14px; border: 1px solid var(--border);
+    font-family: 'Space Mono', monospace; font-size: 0.68rem;
+    letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase;
+    transition: border-color 0.3s, color 0.3s;
+  }
+  .badge:hover { border-color: var(--acid); color: var(--acid); }
+  .hero-scroll {
+    position: absolute; bottom: 40px; left: 48px;
+    font-family: 'Space Mono', monospace; font-size: 0.65rem;
+    letter-spacing: 0.2em; color: var(--muted); text-transform: uppercase;
+    display: flex; align-items: center; gap: 12px;
+    opacity: 0; animation: fadeUp 0.8s 1.2s forwards;
+  }
+  .scroll-line {
+    width: 40px; height: 1px; background: var(--muted);
+    animation: scrollPulse 2s ease-in-out infinite;
+  }
+  @keyframes scrollPulse { 0%,100% { width: 40px; } 50% { width: 60px; } }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ─── SECTION COMMONS ─── */
+  section { padding: 100px 48px; }
+
+  .section-label {
+    font-family: 'Space Mono', monospace; font-size: 0.68rem;
+    letter-spacing: 0.25em; text-transform: uppercase; color: var(--acid);
+    margin-bottom: 16px; display: flex; align-items: center; gap: 12px;
+  }
+  .section-label::before {
+    content: ''; display: inline-block; width: 24px; height: 1px; background: var(--acid);
+  }
+  .section-heading {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2.5rem, 6vw, 5rem);
+    letter-spacing: 0.03em; line-height: 0.95;
+    color: var(--off-white);
+  }
+  .section-sub {
+    color: var(--muted); font-size: 0.9rem; margin-top: 12px;
+    max-width: 500px; line-height: 1.7;
+  }
+
+  /* ─── CATEGORY TABS ─── */
+  #work { background: var(--black); }
+  .category-tabs {
+    display: flex; gap: 4px; margin: 48px 0 56px;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto; scrollbar-width: none;
+  }
+  .category-tabs::-webkit-scrollbar { display: none; }
+  .tab-btn {
+    padding: 14px 28px; background: none; border: none;
+    font-family: 'Syne', sans-serif; font-size: 0.82rem; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--muted); cursor: none;
+    border-bottom: 2px solid transparent; margin-bottom: -1px;
+    transition: color 0.3s, border-color 0.3s;
+    white-space: nowrap;
+  }
+  .tab-btn.active, .tab-btn:hover { color: var(--off-white); border-bottom-color: var(--acid); }
+  .tab-btn .tab-count {
+    display: inline-block; margin-left: 8px; padding: 2px 6px;
+    background: var(--dim); border-radius: 2px;
+    font-size: 0.65rem; color: var(--muted); font-family: 'Space Mono', monospace;
+  }
+  .tab-btn.active .tab-count { background: var(--acid); color: var(--black); }
+
+  /* ─── PROJECT GRID ─── */
+  .category-panel { display: none; }
+  .category-panel.active { display: block; }
+
+  .projects-grid {
+    display: grid; gap: 24px;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  }
+  .projects-grid.featured { grid-template-columns: 1fr 1fr; gap: 24px; }
+  .projects-grid.featured .project-card:first-child { grid-column: span 2; }
+
+  .project-card {
+    background: var(--dim); overflow: hidden;
+    position: relative; border: 1px solid var(--border);
+    transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1), border-color 0.3s;
+    cursor: none;
+  }
+  .project-card:hover { transform: translateY(-6px); border-color: rgba(200,255,0,0.3); }
+  .project-card:hover .card-overlay { opacity: 1; }
+  .project-card:hover .card-play { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  .project-card:hover .card-thumb { transform: scale(1.04); }
+
+  .card-media {
+    position: relative; overflow: hidden;
+    aspect-ratio: 16/9; background: #111;
+  }
+  .card-media.tall { aspect-ratio: 9/16; max-height: 520px; }
+  .project-card:first-child .card-media { aspect-ratio: 21/9; }
+
+  .card-thumb {
+    width: 100%; height: 100%; object-fit: cover;
+    transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+    display: block;
+  }
+
+  /* Placeholder art for video thumbnails */
+  .card-video {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover; opacity: 0; transition: opacity 0.3s;
+  }
+  .project-card:hover .card-video { opacity: 1; }
+  .card-placeholder {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    position: relative; overflow: hidden;
+  }
+  .ph-1 { background: linear-gradient(135deg, #0d0d1a 0%, #1a0d33 50%, #000 100%); }
+  .ph-2 { background: linear-gradient(135deg, #1a0500 0%, #330d00 50%, #0d0d0d 100%); }
+  .ph-3 { background: linear-gradient(135deg, #001a0d 0%, #003322 50%, #0d0d0d 100%); }
+  .ph-4 { background: linear-gradient(135deg, #0d0d00 0%, #1a1a00 50%, #333300 100%); }
+  .ph-5 { background: linear-gradient(135deg, #1a0033 0%, #330066 50%, #000 100%); }
+  .ph-6 { background: linear-gradient(135deg, #001a33 0%, #003366 50%, #0d0d0d 100%); }
+  .ph-7 { background: linear-gradient(135deg, #1a1a00 0%, #333300 50%, #666600 100%); }
+  .ph-8 { background: linear-gradient(135deg, #330000 0%, #660000 50%, #0d0000 100%); }
+
+  .ph-lines {
+    position: absolute; inset: 0;
+    background-image:
+      repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(255,255,255,0.02) 40px, rgba(255,255,255,0.02) 41px),
+      repeating-linear-gradient(90deg, transparent, transparent 60px, rgba(255,255,255,0.015) 60px, rgba(255,255,255,0.015) 61px);
+  }
+  .ph-icon {
+    font-size: 3rem; position: relative; z-index: 1;
+    opacity: 0.15; filter: blur(0.5px);
+  }
+  .ph-badge {
+    position: absolute; bottom: 12px; left: 12px; z-index: 2;
+    font-family: 'Space Mono', monospace; font-size: 0.6rem;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    color: rgba(255,255,255,0.25);
+    border: 1px solid rgba(255,255,255,0.1); padding: 4px 8px;
+  }
+
+  .card-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.2) 60%, transparent 100%);
+    opacity: 0; transition: opacity 0.4s;
+  }
+  .card-play {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(0.7);
+    width: 64px; height: 64px; border-radius: 50%;
+    background: var(--acid); display: flex; align-items: center; justify-content: center;
+    opacity: 0; transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  .card-play svg { width: 24px; height: 24px; margin-left: 3px; }
+  .card-play svg path { fill: var(--black); }
+
+  .card-video-btn {
+    position: absolute; top: 12px; right: 12px;
+    background: rgba(200,255,0,0.15); border: 1px solid rgba(200,255,0,0.4);
+    padding: 4px 10px; font-family: 'Space Mono', monospace; font-size: 0.6rem;
+    letter-spacing: 0.1em; color: var(--acid); text-transform: uppercase;
+    opacity: 0; transition: opacity 0.3s; z-index: 10; cursor: pointer;
+  }
+  .project-card:hover .card-video-btn { opacity: 1; }
+
+  .card-body { padding: 20px 22px; }
+  .card-cat {
+    font-family: 'Space Mono', monospace; font-size: 0.6rem;
+    letter-spacing: 0.18em; text-transform: uppercase; color: var(--acid);
+    margin-bottom: 6px;
+  }
+  .card-title {
+    font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700;
+    color: var(--off-white); line-height: 1.3;
+  }
+  .card-desc {
+    font-size: 0.78rem; color: var(--muted); margin-top: 6px; line-height: 1.6;
+  }
+  .card-tags { display: flex; gap: 6px; margin-top: 14px; flex-wrap: wrap; }
+  .tag {
+    padding: 3px 9px; border: 1px solid var(--border);
+    font-size: 0.62rem; font-family: 'Space Mono', monospace;
+    letter-spacing: 0.08em; color: var(--muted);
+  }
+
+  /* VIDEO MODAL */
+  .modal-bg {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.95);
+    z-index: 5000; display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none; transition: opacity 0.3s;
+    backdrop-filter: blur(8px);
+  }
+  .modal-bg.open { opacity: 1; pointer-events: all; }
+  .modal-inner {
+    position: relative; width: 90vw; max-width: 900px;
+    transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.23,1,0.32,1);
+  }
+  .modal-bg.open .modal-inner { transform: scale(1); }
+  .modal-video-wrap {
+    position: relative; aspect-ratio: 16/9;
+    background: #000; overflow: hidden;
+  }
+  .modal-video-wrap.portrait { aspect-ratio: 9/16; max-height: 80vh; }
+  .modal-video-wrap iframe, .modal-video-wrap video {
+    position: absolute; inset: 0; width: 100%; height: 100%; border: none;
+  }
+  .modal-placeholder {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 20px; color: var(--muted);
+  }
+  .modal-placeholder .icon { font-size: 3rem; }
+  .modal-placeholder p { font-family: 'Space Mono', monospace; font-size: 0.75rem; letter-spacing: 0.1em; text-align: center; line-height: 1.7; }
+  .modal-placeholder .upload-hint { color: var(--acid); font-size: 0.68rem; margin-top: 4px; }
+  .modal-close {
+    position: absolute; top: -40px; right: 0;
+    background: none; border: none; color: var(--off-white);
+    font-size: 1.2rem; cursor: none; font-family: 'Space Mono', monospace;
+    letter-spacing: 0.1em; display: flex; align-items: center; gap: 8px;
+    transition: color 0.2s;
+  }
+  .modal-close:hover { color: var(--acid); }
+  .modal-title {
+    margin-top: 20px; font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.5rem; letter-spacing: 0.05em; color: var(--off-white);
+  }
+  .modal-meta {
+    display: flex; gap: 16px; margin-top: 6px;
+    font-family: 'Space Mono', monospace; font-size: 0.65rem;
+    letter-spacing: 0.1em; color: var(--muted);
+  }
+  .modal-meta span { color: var(--acid); }
+
+  /* ─── ABOUT ─── */
+  #about {
+    background: var(--dim);
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 80px; align-items: center;
+  }
+  .about-text .section-heading { margin-top: 16px; }
+  .about-body {
+    margin-top: 24px; color: var(--muted); font-size: 0.92rem;
+    line-height: 1.8; display: flex; flex-direction: column; gap: 12px;
+  }
+  .about-body p strong { color: var(--off-white); }
+  .skills-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 12px; margin-top: 32px;
+  }
+  .skill-item {
+    padding: 16px; border: 1px solid var(--border);
+    transition: border-color 0.3s, background 0.3s;
+  }
+  .skill-item:hover { border-color: var(--acid); background: rgba(200,255,0,0.03); }
+  .skill-name {
+    font-size: 0.8rem; font-weight: 700; color: var(--off-white);
+  }
+  .skill-bar { height: 2px; background: var(--border); margin-top: 10px; overflow: hidden; }
+  .skill-fill {
+    height: 100%; background: var(--acid);
+    width: 0; transition: width 1.2s cubic-bezier(0.23,1,0.32,1);
+  }
+  .skill-fill.animated { width: var(--pct); }
+
+  .about-visual {
+    position: relative; display: flex; align-items: center; justify-content: center;
+  }
+  .about-ring-outer {
+    width: 360px; height: 360px; border-radius: 50%;
+    border: 1px solid rgba(200,255,0,0.15);
+    display: flex; align-items: center; justify-content: center;
+    animation: spin 25s linear infinite;
+  }
+  .about-ring-inner {
+    width: 280px; height: 280px; border-radius: 50%;
+    border: 1px solid rgba(200,255,0,0.08);
+    display: flex; align-items: center; justify-content: center;
+    animation: spin 15s linear infinite reverse;
+    position: relative;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .about-center {
+    width: 200px; height: 200px; border-radius: 50%;
+    background: linear-gradient(135deg, rgba(200,255,0,0.08), rgba(255,94,0,0.05));
+    border: 1px solid rgba(200,255,0,0.2);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    animation: none; position: absolute;
+    text-align: center; padding: 20px;
+  }
+  .about-center .big-num {
+    font-family: 'Bebas Neue', sans-serif; font-size: 3rem;
+    line-height: 1; color: var(--acid);
+  }
+  .about-center .label {
+    font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--muted); margin-top: 4px; font-family: 'Space Mono', monospace;
+  }
+  .orbit-dot {
+    position: absolute; width: 8px; height: 8px; border-radius: 50%;
+    background: var(--acid); top: -4px; left: 50%; transform: translateX(-50%);
+    box-shadow: 0 0 12px var(--acid);
+  }
+
+  /* ─── PROCESS STRIP ─── */
+  #process {
+    background: var(--black); padding: 80px 48px;
+  }
+  .process-strip {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 1px; margin-top: 48px; background: var(--border);
+    border: 1px solid var(--border);
+  }
+  .process-item {
+    background: var(--black); padding: 32px 28px;
+    transition: background 0.3s;
+  }
+  .process-item:hover { background: var(--dim); }
+  .process-num {
+    font-family: 'Bebas Neue', sans-serif; font-size: 3rem;
+    color: rgba(200,255,0,0.1); line-height: 1;
+  }
+  .process-title {
+    font-size: 0.9rem; font-weight: 700; color: var(--off-white);
+    margin-top: 12px; text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .process-text {
+    font-size: 0.78rem; color: var(--muted); margin-top: 8px; line-height: 1.7;
+  }
+
+  /* ─── STATS BAR ─── */
+  .stats-bar {
+    background: var(--acid); padding: 24px 48px;
+    display: flex; justify-content: space-around; align-items: center;
+    gap: 20px; flex-wrap: wrap;
+  }
+  .stat-item { text-align: center; }
+  .stat-num {
+    font-family: 'Bebas Neue', sans-serif; font-size: 2.5rem;
+    color: var(--black); line-height: 1;
+  }
+  .stat-label {
+    font-size: 0.62rem; letter-spacing: 0.18em; text-transform: uppercase;
+    color: rgba(0,0,0,0.6); font-family: 'Space Mono', monospace; margin-top: 2px;
+  }
+
+  /* ─── CONTACT ─── */
+  #contact {
+    background: var(--dim);
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 80px; align-items: start;
+  }
+  .contact-intro { padding-top: 0; }
+  .contact-intro .section-heading { margin-top: 16px; }
+  .contact-desc {
+    color: var(--muted); font-size: 0.9rem; margin-top: 16px; line-height: 1.8;
+  }
+  .contact-methods { margin-top: 36px; display: flex; flex-direction: column; gap: 0; }
+  .contact-item {
+    display: flex; align-items: center; gap: 20px;
+    padding: 18px 0; border-bottom: 1px solid var(--border);
+    text-decoration: none; color: var(--off-white);
+    transition: padding-left 0.3s, color 0.3s;
+    position: relative; overflow: hidden;
+  }
+  .contact-item::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+    width: 0; background: rgba(200,255,0,0.04); transition: width 0.3s;
+  }
+  .contact-item:hover::before { width: 100%; }
+  .contact-item:hover { padding-left: 12px; }
+  .contact-item:hover .contact-handle { color: var(--acid); }
+  .contact-icon {
+    width: 44px; height: 44px; border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; flex-shrink: 0; transition: border-color 0.3s, background 0.3s, color 0.3s;
+  }
+  .contact-item:hover .contact-icon { border-color: var(--acid); background: rgba(200,255,0,0.08); }
+  /* Social brand colors on hover */
+  .contact-item:hover .fa-instagram { color: #E4405F; }
+  .contact-item:hover .fa-youtube { color: #FF0000; }
+  .contact-item:hover .fa-whatsapp { color: #25D366; }
+  .contact-item:hover .fa-envelope { color: #EA4335; }
+  .contact-item:hover .fa-google-drive { color: #4285F4; }
+  /* Social border colors on hover */
+  .contact-item:nth-child(1):hover .contact-icon { border-color: #E4405F; background: rgba(228,64,95,0.1); }
+  .contact-item:nth-child(2):hover .contact-icon { border-color: #FF0000; background: rgba(255,0,0,0.1); }
+  .contact-item:nth-child(3):hover .contact-icon { border-color: #25D366; background: rgba(37,211,102,0.1); }
+  .contact-item:nth-child(4):hover .contact-icon { border-color: #EA4335; background: rgba(234,67,53,0.1); }
+  .contact-item:nth-child(5):hover .contact-icon { border-color: #4285F4; background: rgba(66,133,244,0.1); }
+  /* Social text colors on hover */
+  .contact-item:nth-child(1):hover .contact-handle { color: #E4405F; }
+  .contact-item:nth-child(2):hover .contact-handle { color: #FF0000; }
+  .contact-item:nth-child(3):hover .contact-handle { color: #25D366; }
+  .contact-item:nth-child(4):hover .contact-handle { color: #EA4335; }
+  .contact-item:nth-child(5):hover .contact-handle { color: #4285F4; }
+  .contact-info { flex: 1; }
+  .contact-platform {
+    font-size: 0.68rem; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--muted); font-family: 'Space Mono', monospace;
+  }
+  .contact-handle { font-size: 0.92rem; font-weight: 700; margin-top: 2px; }
+  .contact-arrow { font-size: 1rem; opacity: 0; transform: translateX(-10px); transition: all 0.3s; }
+  .contact-item:hover .contact-arrow { opacity: 1; transform: translateX(0); color: var(--acid); }
+
+  .contact-cta-wrap { margin-top: 36px; }
+  .cta-big {
+    display: inline-flex; align-items: center; gap: 14px;
+    padding: 18px 36px; background: var(--acid); color: var(--black);
+    font-family: 'Syne', sans-serif; font-size: 0.85rem; font-weight: 800;
+    letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none;
+    transition: transform 0.3s, box-shadow 0.3s; cursor: none;
+    border: none;
+  }
+  .cta-big:hover { transform: translateY(-3px); box-shadow: 0 16px 40px rgba(200,255,0,0.3); }
+
+  /* ─── FOOTER ─── */
+  footer {
+    background: var(--black); padding: 32px 48px;
+    display: flex; justify-content: space-between; align-items: center;
+    border-top: 1px solid var(--border); flex-wrap: wrap; gap: 16px;
+  }
+  .footer-logo {
+    font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem;
+    letter-spacing: 0.08em; color: var(--acid);
+  }
+  .footer-copy {
+    font-family: 'Space Mono', monospace; font-size: 0.62rem;
+    color: var(--muted); letter-spacing: 0.1em;
+  }
+  .footer-built {
+    font-family: 'Space Mono', monospace; font-size: 0.62rem;
+    color: var(--muted);
+  }
+  .footer-built span { color: var(--acid); }
+
+  /* ─── TICKER ─── */
+  .ticker {
+    background: var(--acid); padding: 12px 0;
+    overflow: hidden; white-space: nowrap;
+  }
+  .ticker-inner {
+    display: inline-flex; gap: 48px;
+    animation: ticker 20s linear infinite;
+  }
+  @keyframes ticker { to { transform: translateX(-50%); } }
+  .ticker-item {
+    font-family: 'Bebas Neue', sans-serif; font-size: 0.9rem;
+    letter-spacing: 0.15em; color: var(--black); text-transform: uppercase;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .ticker-sep { color: rgba(0,0,0,0.3); }
+
+  /* SCROLL REVEAL */
+  .reveal {
+    opacity: 0; transform: translateY(40px);
+    transition: opacity 0.7s, transform 0.7s cubic-bezier(0.23,1,0.32,1);
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  /* RESPONSIVE */
+  @media (max-width: 900px) {
+    nav { padding: 16px 24px; }
+    .nav-links { display: none; }
+    #hero, section, #about, #contact { padding: 80px 24px; }
+    .hero-name { font-size: clamp(3rem, 14vw, 6rem); }
+    .projects-grid.featured { grid-template-columns: 1fr; }
+    .projects-grid.featured .project-card:first-child { grid-column: span 1; }
+    #about, #contact { grid-template-columns: 1fr; gap: 40px; }
+    .process-strip { grid-template-columns: 1fr 1fr; }
+    .about-ring-outer { width: 260px; height: 260px; }
+    .about-ring-inner { width: 200px; height: 200px; }
+    .about-center { width: 140px; height: 140px; }
+    footer { flex-direction: column; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Custom Cursor -->
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#hero">SWR</a>
+  <div class="nav-links">
+    <a href="#work">Work</a>
+    <a href="#about">About</a>
+    <a href="#contact" class="nav-cta">Hire Me</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-bg-grid"></div>
+  <div class="hero-glow"></div>
+  <div class="hero-eyebrow">✦ Motion Designer — Delhi, India</div>
+  <h1 class="hero-name">SAWAR<span>ANSH</span></h1>
+  <p class="hero-title">
+    I craft <strong>motion that moves people</strong> — from kinetic infographics and 3D promos to cinematic game edits. Powered by <strong>After Effects</strong> & <strong>Premiere Pro</strong>.
+  </p>
+  <div class="hero-badges">
+    <span class="badge">After Effects</span>
+    <span class="badge">Premiere Pro</span>
+    <span class="badge">Motion Graphics</span>
+    <span class="badge">3D Design</span>
+    <span class="badge">Visual Effects</span>
+    <span class="badge">Esports</span>
+  </div>
+  <div class="hero-scroll">
+    <div class="scroll-line"></div>
+    Scroll to explore
+  </div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker">
+  <div class="ticker-inner" id="tickerInner"></div>
+</div>
+
+<!-- WORK -->
+<section id="work">
+  <div class="section-label">Featured Work</div>
+  <h2 class="section-heading">SELECTED<br>PROJECTS</h2>
+  <p class="section-sub">Browse by category — each piece is built to move, impress, and convert.</p>
+
+  <div class="category-tabs" id="categoryTabs">
+    <button class="tab-btn active" data-tab="infographics">Infographics <span class="tab-count">4</span></button>
+    <button class="tab-btn" data-tab="animations">Animations <span class="tab-count">3</span></button>
+    <button class="tab-btn" data-tab="edits">Game & Anime Edits <span class="tab-count">6</span></button>
+    <button class="tab-btn" data-tab="all">All <span class="tab-count">13</span></button>
+  </div>
+
+  <!-- ALL -->
+  <div class="category-panel" id="panel-all">
+    <div class="projects-grid featured">
+
+      <div class="project-card reveal" data-modal="modal-appreel">
+        <div class="card-media">
+          <div class="card-placeholder ph-1"><div class="ph-lines"></div><div class="ph-icon">🚀</div><div class="ph-badge">App Promo Reel</div></div>
+          <div class="card-overlay"></div>
+          <div class="card-play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+          <button class="card-video-btn" onclick="openModal('modal-appreel', event)">▶ Play</button>
+        </div>
+        <div class="card-body">
+          <div class="card-cat">Infographics · Featured</div>
+          <div class="card-title">Futuristic App Promo — 3D Motion Design</div>
+          <div class="card-desc">A high-energy app promotional reel featuring custom 3D UI elements, glowing neon transitions, and cinematic reveals designed to market a futuristic tech product.</div>
+          <div class="card-tags"><span class="tag">After Effects</span><span class="tag">3D</span><span class="tag">App Promo</span><span class="tag">Neon</span></div>
+        </div>
+      </div>
+
+      <div class="project-card reveal" data-modal="modal-math">
+        <div class="card-media">
+          <div class="card-placeholder ph-3"><div class="ph-lines"></div><div class="ph-icon">∑</div><div class="ph-badge">Infographic</div></div>
+          <div class="card-overlay"></div>
+          <div class="card-play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+          <button class="card-video-btn" onclick="openModal('modal-math', event)">▶ Play</button>
+        </div>
+        <div class="card-body">
+          <div class="card-cat">Infographics</div>
+          <div class="card-title">Mathematical Equation & Physics Animation</div>
+          <div class="card-desc">Kinetic typography meets scientific visualization — complex equations brought to life through fluid motion and clever timing.</div>
+          <div class="card-tags"><span class="tag">Infographic</span><span class="tag">Typography</span><span class="tag">Physics</span></div>
+        </div>
+      </div>
+
+      <div class="project-card reveal" data-modal="modal-esports">
+        <div class="card-media">
+          <div class="card-placeholder ph-5"><div class="ph-lines"></div><div class="ph-icon">🎮</div><div class="ph-badge">Esports Intro</div></div>
+          <div class="card-overlay"></div>
+          <div class="card-play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+          <button class="card-video-btn" onclick="openModal('modal-esports', event)">▶ Play</button>
+        </div>
+        <div class="card-body">
+          <div class="card-cat">Infographics · Esports</div>
+          <div class="card-title">Esports Team Intro Reel</div>
+          <div class="card-desc">Championship-ready team intro with explosive particle systems, speed lines, and aggressive typography synced to a custom sound design.</div>
+          <div class="card-tags"><span class="tag">Esports</span><span class="tag">Intro Reel</span><span class="tag">Particle FX</span></div>
+        </div>
+      </div>
+
+      <div class="project-card reveal" data-modal="modal-mixedmedia">
+        <div class="card-media">
+          <div class="card-placeholder ph-4"><div class="ph-lines"></div><div class="ph-icon">🎬</div><div class="ph-badge">Mixed Media</div></div>
+          <div class="card-overlay"></div>
+          <div class="card-play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+          <button class="card-video-btn" onclick="openModal('modal-mixedmedia', event)">▶ Play</button>
+        </div>
+        <div class="card-body">
+          <div class="card-cat">Infographics · Mixed Media</div>
+          <div class="card-title">Mixed Media Motion Graphics Reel</div>
+          <div class="card-desc">A showreel fusing live footage, graphic overlays, and kinetic elements — showcasing versatility across multiple styles and formats.</div>
+          <div class="card-tags"><span class="tag">Mixed Media</span><span class="tag">Showreel</span><span class="tag">Motion Graphics</span></div>
+        </div>
+      </div>
+
+      <div class="project-card reveal" data-modal="modal-squidgame">
+        <div class="card-media">
+          <div class="card-placeholder ph-8"><div class="ph-lines"></div><div class="ph-icon">🦑</div><div class="ph-badge">Photo Carousel</div></div>
+          <div class="card-overlay"></div>
+          <div class="card-play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+          <button class="card-video-btn" onclick="openModal('modal-squidgame', event)">▶ Play</button>
+        </div>
+        <div class="card-body">
+          <div class="card-cat">Animations</div>
+          <div class="card-title">Photo Carousel — Squid Game Theme</div>
+          <div class="card-desc">A hypnotic animated photo carousel built with the iconic Squid Game visual language — geometric shapes, stark contrast, tension.</div>
+          <div class="card-tags"><span class="tag">Animation</span><span class="tag">Photo Carousel</span><span class="tag">Squid Game</span></div>
+        </div>
+      </div>
+
+      <div class="project-card reveal" data-modal="modal-coffeelogo">
+        <div class="card-media">
+          <div class="card-placeholder ph-2"><div class="ph-lines"></div><div class="ph-icon">☕</div><div class="ph-badge">Logo Animation</div></div>
+          <div class="card-overlay"></div>
+          <div class="card-play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+          <button class="card-video-btn" onclick="openModal('modal-coffeelogo', event)">▶ Play</button>
+        </div>
+        <div class="card-body">
+          <div class="card-cat">Animations · Logo</div>
+          <div class="card-title">Coffee Brand Logo Animation</div>
+          <div class="card-desc">A warm, handcrafted logo reveal for a coffee brand — steam wisps, ink bleed textures, and a satisfying stinger at the end.</div>
+          <div class="card-tags"><span class="tag">Logo</span><span class="tag">Brand Animation</span><span class="tag">Coffee</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- INFOGRAPHICS -->
+  <div class="category-panel active" id="panel-infographics">
+    <div class="projects-grid">
+      <div class="project-card reveal" data-modal="modal-appreel">
+        <div class="card-media"><div class="card-placeholder ph-1"><div class="ph-lines"></div><div class="ph-icon">🚀</div><div class="ph-badge">App Promo</div></div><div class="card-overlay"></div><div class="card-play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div><button class="card-video-btn" onclick="openModal('modal-appreel',event)">▶ Play</button></div>
+        <div class="card-body"><div class="card-cat">Infographics · 3D</div><div class="card-title">Futuristic App Promo</div><div class="card-desc">3D design meets motion — a slick app promotional reel with neon interfaces and cinematic camera moves.</div><div class="card-tags"><span class="tag">After Effects</span><span class="tag">3D</span><span class="tag">App</span></div></div>
+      </div>
+      <div class="project-card reveal" data-modal="modal-math">
+        <div class="card-media"><div class="card-placeholder ph-3"><div class="ph-lines"></div><div class="ph-icon">∑</div><div class="ph-badge">Physics</div></div><div class="card-overlay"></div><div class="card-play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div><button class="card-video-btn" onclick="openModal('modal-math',event)">▶ Play</button></div>
+        <div class="card-body"><div class="card-cat">Infographics · Education</div><div class="card-title">Mathematical & Physics Animation</div><div class="card-desc">Equations in motion — educational animation making complex physics concepts visually intuitive.</div><div class="card-tags"><span class="tag">Infographic</span><span class="tag">Physics</span><span class="tag">Edu</span></div></div>
+      </div>
+      <div class="project-card reveal" data-modal="modal-esports">
+        <div class="card-media"><div class="card-placeholder ph-5"><div class="ph-lines"></div><div class="ph-icon">🎮</div><div class="ph-badge">Esports</div></div><div class="card-overlay"></div><div class="card-play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div><button class="card-video-btn" onclick="openModal('modal-esports',event)">▶ Play</button></div>
+        <div class="card-body"><div class="card-cat">Infographics · Esports</div><div class="card-title">Esports Team Intro Reel</div><div class="card-desc">Explosive particle systems and aggressive typography for a competitive gaming team reveal.</div><div class="card-tags"><span class="tag">Esports</span><span class="tag">Intro</span><span class="tag">Particles</span></div></div>
+      </div>
+      <div class="project-card reveal" data-modal="modal-mixedmedia">
+        <div class="card-media"><div class="card-placeholder ph-4"><div class="ph-lines"></div><div class="ph-icon">🎬</div><div class="ph-badge">Mixed Media</div></div><div class="card-overlay"></div><div class="card-play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div><button class="card-video-btn" onclick="openModal('modal-mixedmedia',event)">▶ Play</button></div>
+        <div class="card-body"><div class="card-cat">Infographics · Showreel</div><div class="card-title">Mixed Media Motion Graphics Reel</div><div class="card-desc">A showcase reel blending live footage, graphic overlays, and animated typography.</div><div class="card-tags"><span class="tag">Mixed Media</span><span class="tag">Reel</span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ANIMATIONS -->
+  <div class="category-panel" id="panel-animations">
+    <div class="projects-grid">
+      <div class="project-card reveal" data-modal="modal-squidgame">
+        <div class="card-media"><div class="card-placeholder ph-8"><div class="ph-lines"></div><div class="ph-icon">🦑</div><div class="ph-badge">Carousel</div></div><div class="card-overlay"></div><div class="card-play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div><button class="card-video-btn" onclick="openModal('modal-squidgame',event)">▶ Play</button></div>
+        <div class="card-body"><div class="card-cat">Animations · Theme</div><div class="card-title">Squid Game Photo Carousel</div><div class="card-desc">Geometric shapes and stark contrast define this Squid Game-inspired animated carousel.</div><div class="card-tags"><span class="tag">Animation</span><span class="tag">Squid Game</span></div></div>
+      </div>
+      <div class="project-card reveal" data-modal="modal-coffeelogo">
+        <div class="card-media"><div class="card-placeholder ph-2"><div class="ph-lines"></div><div class="ph-icon">☕</div><div class="ph-badge">Logo Anim</div></div><div class="card-overlay"></div><div class="card-play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div><button class="card-video-btn" onclick="openModal('modal-coffeelogo',event)">▶ Play</button></div>
+        <div class="card-body"><div class="card-cat">Animations · Logo</div><div class="card-title">Coffee Brand Logo Animation</div><div class="card-desc">Warm and organic logo reveal with steam wisps and ink textures for a coffee brand.</div><div class="card-tags"><span class="tag">Logo</span><span class="tag">Branding</span></div></div>
+      </div>
+      <div class="project-card reveal" data-modal="modal-typography">
+        <div class="card-media"><div class="card-placeholder ph-6"><div class="ph-lines"></div><div class="ph-icon">✦</div><div class="ph-badge">Typography</div></div><div class="card-overlay"></div><div class="card-play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div><button class="card-video-btn" onclick="openModal('modal-typography',event)">▶ Play</button></div>
+        <div class="card-body"><div class="card-cat">Animations · Typography</div><div class="card-title">Typography Reel</div><div class="card-desc">Kinetic typography showcase with dynamic text animations and creative type treatments.</div><div class="card-tags"><span class="tag">Typography</span><span class="tag">Kinetic</span></div></div>
+      </div>
+      <div class="project-card reveal" data-modal="modal-logos">
+        <div class="card-media"><div class="card-placeholder ph-6"><div class="ph-lines"></div><div class="ph-icon">✦</div><div class="ph-badge">Logo Pack</div></div><div class="card-overlay"></div><div class="card-play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div><button class="card-video-btn" onclick="openModal('modal-logos',event)">▶ Play</button></div>
+        <div class="card-body"><div class="card-cat">Animations · Logo</div><div class="card-title">Logo Animation Collection</div><div class="card-desc">A curated collection of logo animation stingers across different styles and industries.</div><div class="card-tags"><span class="tag">Logo Pack</span><span class="tag">Brand</span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EDITS -->
+  <div class="category-panel" id="panel-edits">
+    <div class="projects-grid">
+      <div class="project-card reveal" data-modal="modal-edit1">
+        <div class="card-media"><div class="card-placeholder ph-5"><div class="ph-lines"></div><div class="ph-icon">⚔️</div><div class="ph-badge">Game Edit</div></div><div class="card-overlay"></div><div class="card-play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div><button class="card-video-btn" onclick="openModal('modal-edit1',event)">▶ Play</button></div>
+        <div class="card-body"><div class="card-cat">Game Edits</div><div class="card-title">GTA Game Edit, Motion Design, Beat Sync</div><div class="card-desc">High-intensity gameplay montage with beat-synced cuts, speed ramps, and custom VFX overlays.</div><div class="card-tags"><span class="tag">Game</span><span class="tag">Montage</span><span class="tag">VFX</span></div></div>
+      </div>
+      <div class="project-card reveal" data-modal="modal-edit2">
+        <div class="card-media"><div class="card-placeholder ph-1"><div class="ph-lines"></div><div class="ph-icon">🌸</div><div class="ph-badge">Anime Edit</div></div><div class="card-overlay"></div><div class="card-play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div><button class="card-video-btn" onclick="openModal('modal-edit2',event)">▶ Play</button></div>
+        <div class="card-body"><div class="card-cat">Anime Edits</div><div class="card-title">Candy Style Anime Edit</div><div class="card-desc">Emotional anime edit with color grading, glitch transitions, and perfectly timed cuts to a crescendo.</div><div class="card-tags"><span class="tag">Anime</span><span class="tag">Cinematic</span><span class="tag">Color Grade</span></div></div>
+      </div>
+      <div class="project-card reveal" data-modal="modal-edit3">
+        <div class="card-media"><div class="card-placeholder ph-7"><div class="ph-lines"></div><div class="ph-icon">🏙️</div><div class="ph-badge">Real Life Edit</div></div><div class="card-overlay"></div><div class="card-play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div><button class="card-video-btn" onclick="openModal('modal-edit3',event)">▶ Play</button></div>
+        <div class="card-body"><div class="card-cat">Real Life Edits</div><div class="card-title">Team Reveal, Motion Graphics, Cinematography</div><div class="card-desc">Live-action footage transformed with motion graphics overlays, cinematic LUTs, and visual effects.</div><div class="card-tags"><span class="tag">Real Life</span><span class="tag">Cinematic</span><span class="tag">LUTs</span></div></div>
+      </div>
+      <div class="project-card reveal" data-modal="modal-edit4">
+        <div class="card-media"><div class="card-placeholder ph-2"><div class="ph-lines"></div><div class="ph-icon">🎯</div><div class="ph-badge">Game Edit</div></div><div class="card-overlay"></div><div class="card-play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div><button class="card-video-btn" onclick="openModal('modal-edit4',event)">▶ Play</button></div>
+        <div class="card-body"><div class="card-cat">Game Edits</div><div class="card-title">Fun Event Recap Edit</div><div class="card-desc">Precision-focused FPS highlights with optical flares, impact frames, and aggressive sound design.</div><div class="card-tags"><span class="tag">FPS</span><span class="tag">Game</span><span class="tag">Montage</span></div></div>
+      </div>
+      <div class="project-card reveal" data-modal="modal-edit5">
+        <div class="card-media"><div class="card-placeholder ph-6"><div class="ph-lines"></div><div class="ph-icon">🐉</div><div class="ph-badge">Anime Edit</div></div><div class="card-overlay"></div><div class="card-play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div><button class="card-video-btn" onclick="openModal('modal-edit5',event)">▶ Play</button></div>
+        <div class="card-body"><div class="card-cat">Anime Edits</div><div class="card-title">Squid Game, Reel Cinematic</div><div class="card-desc">AMV-style edit built for maximum visual impact — zoom punches, speed ramps, and Akira-slide transitions.</div><div class="card-tags"><span class="tag">AMV</span><span class="tag">Anime</span><span class="tag">Action</span></div></div>
+      </div>
+      <div class="project-card reveal" data-modal="modal-edit6">
+        <div class="card-media"><div class="card-placeholder ph-4"><div class="ph-lines"></div><div class="ph-icon">🌊</div><div class="ph-badge">Mixed Edit</div></div><div class="card-overlay"></div><div class="card-play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div><button class="card-video-btn" onclick="openModal('modal-edit6',event)">▶ Play</button></div>
+        <div class="card-body"><div class="card-cat">Mixed Edits</div><div class="card-title">Beat Edit, Solo</div><div class="card-desc">Hybrid edit blending real footage and game/anime visuals — a genre-bending showcase of editing craft.</div><div class="card-tags"><span class="tag">Mixed</span><span class="tag">Creative</span><span class="tag">Hybrid</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS BAR -->
+<div class="stats-bar">
+  <div class="stat-item"><div class="stat-num">13+</div><div class="stat-label">Projects</div></div>
+  <div class="stat-item"><div class="stat-num">3</div><div class="stat-label">Specialties</div></div>
+  <div class="stat-item"><div class="stat-num">∞</div><div class="stat-label">Frames of Passion</div></div>
+  <div class="stat-item"><div class="stat-num">AE</div><div class="stat-label">After Effects</div></div>
+  <div class="stat-item"><div class="stat-num">PR</div><div class="stat-label">Premiere Pro</div></div>
+</div>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="about-text reveal">
+    <div class="section-label">About Me</div>
+    <h2 class="section-heading">MOTION<br>IS MY<br>MEDIUM</h2>
+    <div class="about-body">
+      <p>I'm <strong>Sawaransh</strong>, a motion designer based in Delhi, India — obsessed with the space between a frame and the next one.</p>
+      <p>Whether it's a <strong>futuristic 3D app promo</strong>, a hard-hitting <strong>esports intro</strong>, or a tender <strong>anime edit</strong>, I bring the same obsessive attention to timing, weight, and emotion.</p>
+      <p>Currently available for <strong>freelance projects</strong>, brand collaborations, and long-term creative partnerships.</p>
+    </div>
+    <div class="skills-grid">
+      <div class="skill-item"><div class="skill-name">After Effects</div><div class="skill-bar"><div class="skill-fill" style="--pct:95%"></div></div></div>
+      <div class="skill-item"><div class="skill-name">Premiere Pro</div><div class="skill-bar"><div class="skill-fill" style="--pct:92%"></div></div></div>
+      <div class="skill-item"><div class="skill-name">Motion Graphics</div><div class="skill-bar"><div class="skill-fill" style="--pct:90%"></div></div></div>
+      <div class="skill-item"><div class="skill-name">3D Design</div><div class="skill-bar"><div class="skill-fill" style="--pct:78%"></div></div></div>
+      <div class="skill-item"><div class="skill-name">Visual Effects</div><div class="skill-bar"><div class="skill-fill" style="--pct:85%"></div></div></div>
+      <div class="skill-item"><div class="skill-name">Sound Design</div><div class="skill-bar"><div class="skill-fill" style="--pct:72%"></div></div></div>
+    </div>
+  </div>
+
+  <div class="about-visual reveal">
+    <div class="about-ring-outer">
+      <div class="about-ring-inner">
+        <div class="orbit-dot"></div>
+        <div class="about-center">
+          <div class="big-num">∞</div>
+          <div class="label">Frames per<br>Second</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="contact-intro reveal">
+    <div class="section-label">Get In Touch</div>
+    <h2 class="section-heading">LET'S<br>CREATE<br>TOGETHER</h2>
+    <p class="contact-desc">Got a project in mind? A brand to launch? A reel that needs to slap? Let's talk — I'm always open to work.</p>
+    <div class="contact-cta-wrap">
+      <a href="mailto:mittal.sawaransh@gmail.com" class="cta-big">
+        <i class="fas fa-envelope"></i> Drop Me a Mail
+      </a>
+    </div>
+  </div>
+
+  <div class="reveal">
+    <div class="contact-methods">
+      <a href="https://www.instagram.com/sawaransh_/" target="_blank" class="contact-item">
+        <div class="contact-icon"><i class="fab fa-instagram"></i></div>
+        <div class="contact-info">
+          <div class="contact-platform">Instagram</div>
+          <div class="contact-handle">@sawaransh_</div>
+        </div>
+        <div class="contact-arrow">→</div>
+      </a>
+      <a href="https://www.youtube.com/@Simpransh" target="_blank" class="contact-item">
+        <div class="contact-icon"><i class="fab fa-youtube"></i></div>
+        <div class="contact-info">
+          <div class="contact-platform">YouTube</div>
+          <div class="contact-handle">@Simpransh</div>
+        </div>
+        <div class="contact-arrow">→</div>
+      </a>
+      <a href="https://wa.me/9667526100" target="_blank" class="contact-item">
+        <div class="contact-icon"><i class="fab fa-whatsapp"></i></div>
+        <div class="contact-info">
+          <div class="contact-platform">WhatsApp</div>
+          <div class="contact-handle">+91 9667526100</div>
+        </div>
+        <div class="contact-arrow">→</div>
+      </a>
+      <a href="mailto:mittal.sawaransh@gmail.com" class="contact-item">
+        <div class="contact-icon"><i class="fas fa-envelope"></i></div>
+        <div class="contact-info">
+          <div class="contact-platform">Email</div>
+          <div class="contact-handle">mittal.sawaransh@gmail.com</div>
+        </div>
+        <div class="contact-arrow">→</div>
+      </a>
+      <a href="https://drive.google.com/drive/u/2/folders/1nvYgW2oj4DfMi9DCu4K0GVAsrPDRc93Y" target="_blank" class="contact-item">
+        <div class="contact-icon"><i class="fab fa-google-drive"></i></div>
+        <div class="contact-info">
+          <div class="contact-platform">Google Drive</div>
+          <div class="contact-handle">Full project portfolio drive</div>
+        </div>
+        <div class="contact-arrow">→</div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">SWR</div>
+  <div class="footer-copy">© 2026 Sawaransh. All rights reserved.</div>
+  <div class="footer-built">Built for <span>motion</span>.</div>
+</footer>
+
+<!-- VIDEO MODALS -->
+<div class="modal-bg" id="modal-appreel">
+  <div class="modal-inner">
+    <button class="modal-close" onclick="closeModal('modal-appreel')">✕ Close</button>
+    <div class="modal-video-wrap">
+      <iframe src="https://streamable.com/e/j1ake9?autoplay=1&muted=0" frameborder="0" allowfullscreen allow="autoplay; fullscreen"></iframe>
+    </div>
+    <div class="modal-title">Futuristic App Promo</div>
+    <div class="modal-meta"><span>Infographics · 3D</span> <span style="color:var(--muted)">·</span> After Effects <span style="color:var(--muted)">·</span> 3D Design</div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-math">
+  <div class="modal-inner">
+    <button class="modal-close" onclick="closeModal('modal-math')">✕ Close</button>
+    <div class="modal-video-wrap">
+      <iframe src="https://streamable.com/e/9no47s?autoplay=1&muted=0" frameborder="0" allowfullscreen allow="autoplay; fullscreen"></iframe>
+    </div>
+    <div class="modal-title">Mathematical & Physics Animation</div>
+    <div class="modal-meta"><span>Infographics</span> <span style="color:var(--muted)">·</span> Kinetic Typography <span style="color:var(--muted)">·</span> After Effects</div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-esports">
+  <div class="modal-inner">
+    <button class="modal-close" onclick="closeModal('modal-esports')">✕ Close</button>
+    <div class="modal-video-wrap">
+      <iframe src="https://streamable.com/e/29cntd?autoplay=1&muted=0" frameborder="0" allowfullscreen allow="autoplay; fullscreen"></iframe>
+    </div>
+    <div class="modal-title">Esports Team Intro Reel</div>
+    <div class="modal-meta"><span>Esports · Intro</span> <span style="color:var(--muted)">·</span> Particle FX <span style="color:var(--muted)">·</span> After Effects</div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-mixedmedia">
+  <div class="modal-inner">
+    <button class="modal-close" onclick="closeModal('modal-mixedmedia')">✕ Close</button>
+    <div class="modal-video-wrap">
+      <iframe src="https://streamable.com/e/20uq4v?autoplay=1&muted=0" frameborder="0" allowfullscreen allow="autoplay; fullscreen"></iframe>
+    </div>
+    <div class="modal-title">Mixed Media Motion Graphics Reel</div>
+    <div class="modal-meta"><span>Showreel</span> <span style="color:var(--muted)">·</span> Mixed Media <span style="color:var(--muted)">·</span> Premiere Pro</div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-squidgame">
+  <div class="modal-inner">
+    <button class="modal-close" onclick="closeModal('modal-squidgame')">✕ Close</button>
+    <div class="modal-video-wrap">
+      <iframe src="https://streamable.com/e/edtt21?autoplay=1&muted=0" frameborder="0" allowfullscreen allow="autoplay; fullscreen"></iframe>
+    </div>
+    <div class="modal-title">Carousel Animation</div>
+    <div class="modal-meta"><span>Animations</span> <span style="color:var(--muted)">·</span> Photo Carousel <span style="color:var(--muted)">·</span> After Effects</div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-coffeelogo">
+  <div class="modal-inner">
+    <button class="modal-close" onclick="closeModal('modal-coffeelogo')">✕ Close</button>
+    <div class="modal-video-wrap">
+      <iframe src="https://streamable.com/e/8mmmqm?autoplay=1&muted=0" frameborder="0" allowfullscreen allow="autoplay; fullscreen"></iframe>
+    </div>
+    <div class="modal-title">Coffee Logo Animation</div>
+    <div class="modal-meta"><span>Animations · Logo</span> <span style="color:var(--muted)">·</span> Brand Stinger <span style="color:var(--muted)">·</span> After Effects</div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-typography">
+  <div class="modal-inner">
+    <button class="modal-close" onclick="closeModal('modal-typography')">✕ Close</button>
+    <div class="modal-video-wrap">
+      <iframe src="https://streamable.com/e/20uq4v?autoplay=1&muted=0" frameborder="0" allowfullscreen allow="autoplay; fullscreen"></iframe>
+    </div>
+    <div class="modal-title">Typography Reel</div>
+    <div class="modal-meta"><span>Animations · Typography</span> <span style="color:var(--muted)">·</span> Kinetic Typography <span style="color:var(--muted)">·</span> After Effects</div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-logos">
+  <div class="modal-inner">
+    <button class="modal-close" onclick="closeModal('modal-logos')">✕ Close</button>
+    <div class="modal-video-wrap">
+      <iframe src="https://streamable.com/e/1fhywp?autoplay=1&muted=0" frameborder="0" allowfullscreen allow="autoplay; fullscreen"></iframe>
+    </div>
+    <div class="modal-title">Title Reveal — Logo Animation Collection</div>
+    <div class="modal-meta"><span>Animations</span> <span style="color:var(--muted)">·</span> Logo Pack <span style="color:var(--muted)">·</span> After Effects</div>
+  </div>
+</div>
+
+<!-- EDIT MODALS -->
+<script>
+// Scroll to top on page load
+window.addEventListener('beforeunload', () => {
+  window.scrollTo(0, 0);
+});
+window.scrollTo(0, 0);
+
+const editData = [
+  { id:'modal-edit1', ph:'ph-5', icon:'⚔️', title:'GTA Game Edit, Motion Design, Beat Sync', meta:'Game Edits · Beat Sync · Premiere Pro', embed:'m28zy0' },
+  { id:'modal-edit2', ph:'ph-1', icon:'🌸', title:'Candy Style Anime Edit', meta:'Anime Edits · Cinematic · Color Grade', embed:'qgv1w8' },
+  { id:'modal-edit3', ph:'ph-7', icon:'🏙️', title:'Team Reveal, Motion Graphics, Cinematography', meta:'Real Life Edits · Cinematic LUTs · Premiere Pro', embed:'xie7ap' },
+  { id:'modal-edit4', ph:'ph-2', icon:'🎯', title:'Fun Event Recap Edit', meta:'Game Edits · FPS · VFX', embed:'ekhwsr' },
+  { id:'modal-edit5', ph:'ph-6', icon:'🐉', title:'Squid Game, Reel Cinematic', meta:'Anime Edits · AMV · Beat Sync', embed:'0afwro' },
+  { id:'modal-edit6', ph:'ph-4', icon:'🌊', title:'Beat Edit, Solo', meta:'Mixed Edits · Hybrid · Creative', embed:'a44h8x' },
+];
+editData.forEach(ed => {
+  const div = document.createElement('div');
+  div.className = 'modal-bg'; div.id = ed.id;
+  div.innerHTML = `<div class="modal-inner">
+    <button class="modal-close" onclick="closeModal('${ed.id}')">✕ Close</button>
+    <div class="modal-video-wrap">
+      <iframe src="https://streamable.com/e/${ed.embed}?autoplay=1&muted=0" frameborder="0" allowfullscreen allow="autoplay; fullscreen"></iframe>
+    </div>
+    <div class="modal-title">${ed.title}</div>
+    <div class="modal-meta"><span>${ed.meta.split(' · ')[0]}</span> · ${ed.meta.split(' · ').slice(1).join(' · ')}</div>
+  </div>`;
+  document.body.appendChild(div);
+});
+</script>
+
+<script>
+// CURSOR
+const cursor = document.getElementById('cursor');
+const ring = document.getElementById('cursorRing');
+let mx = 0, my = 0, rx = 0, ry = 0;
+document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+function animCursor() {
+  cursor.style.left = mx + 'px'; cursor.style.top = my + 'px';
+  rx += (mx - rx) * 0.12; ry += (my - ry) * 0.12;
+  ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+  requestAnimationFrame(animCursor);
+}
+animCursor();
+document.querySelectorAll('a,button,.project-card,.tab-btn').forEach(el => {
+  el.addEventListener('mouseenter', () => { cursor.style.width = '20px'; cursor.style.height = '20px'; ring.style.width = '50px'; ring.style.height = '50px'; });
+  el.addEventListener('mouseleave', () => { cursor.style.width = '12px'; cursor.style.height = '12px'; ring.style.width = '36px'; ring.style.height = '36px'; });
+});
+
+// TICKER
+const items = ['Motion Design','After Effects','Premiere Pro','3D Animation','Esports Branding','Logo Animation','Visual Effects','Infographics','Anime Edits','Game Edits','Motion that Moves'];
+const ti = document.getElementById('tickerInner');
+const doubled = [...items, ...items].map(t => `<span class="ticker-item">${t}<span class="ticker-sep">✦</span></span>`).join('');
+ti.innerHTML = doubled;
+
+// TABS
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.category-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    const tab = btn.dataset.tab;
+    document.getElementById('panel-' + tab).classList.add('active');
+    observeReveal();
+  });
+});
+
+// MODAL
+function openModal(id, e) {
+  if(e) e.stopPropagation();
+  document.getElementById(id).classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal(id) {
+  const modal = document.getElementById(id);
+  modal.classList.remove('open');
+  document.body.style.overflow = '';
+  // Stop video by removing iframe completely
+  const iframe = modal.querySelector('iframe');
+  if(iframe) {
+    const src = iframe.src;
+    iframe.remove();
+    // Recreate iframe after a short delay to ensure video stops
+    setTimeout(() => {
+      const newIframe = document.createElement('iframe');
+      newIframe.src = src;
+      newIframe.frameBorder = '0';
+      newIframe.allowFullscreen = true;
+      newIframe.allow = 'autoplay; fullscreen';
+      modal.querySelector('.modal-video-wrap').appendChild(newIframe);
+    }, 100);
+  }
+}
+document.querySelectorAll('.project-card').forEach(card => {
+  card.addEventListener('click', () => {
+    const modalId = card.dataset.modal;
+    if(modalId) openModal(modalId);
+  });
+});
+document.querySelectorAll('.modal-bg').forEach(bg => {
+  bg.addEventListener('click', e => {
+    if(e.target === bg) closeModal(bg.id);
+  });
+});
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape') document.querySelectorAll('.modal-bg.open').forEach(m => closeModal(m.id));
+});
+
+// REVEAL ON SCROLL
+function observeReveal() {
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if(entry.isIntersecting) { entry.target.classList.add('visible'); obs.unobserve(entry.target); }
+    });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal:not(.visible)').forEach(el => obs.observe(el));
+}
+observeReveal();
+
+// SKILL BAR ANIMATION
+const skillObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if(e.isIntersecting) {
+      e.target.querySelectorAll('.skill-fill').forEach(f => f.classList.add('animated'));
+      skillObs.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.3 });
+document.querySelectorAll('.skills-grid').forEach(el => skillObs.observe(el));
+</script>
+
+</body>
+</html>
